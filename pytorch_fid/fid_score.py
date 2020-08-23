@@ -47,7 +47,8 @@ try:
 except ImportError:
     # If not tqdm is not available, provide a mock version of it
     def tqdm(x): return x
-
+from PIL import ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 from pytorch_fid.inception import InceptionV3
 
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
@@ -68,7 +69,7 @@ def imread(filename):
     """
     Loads an image file into a (height, width, 3) uint8 ndarray.
     """
-    return np.asarray(Image.open(filename), dtype=np.uint8)[..., :3]
+    return np.asarray(Image.open(filename).resize((256, 256), 0), dtype=np.uint8)[..., :3]
 
 
 def get_activations(files, model, batch_size=50, dims=2048, cuda=False):
@@ -214,10 +215,10 @@ def _compute_statistics_of_path(path, model, batch_size, dims, cuda):
         f.close()
     else:
         path = pathlib.Path(path)
-        files = list(path.glob('*.jpg')) + list(path.glob('*.png'))
+        files = list(path.glob('**/*.jpg')) + list(path.glob('**/*.png'))
         m, s = calculate_activation_statistics(files, model, batch_size,
                                                dims, cuda)
-
+        # np.savez(path / 'statistics.npz', mu=m, sigma=s)
     return m, s
 
 
