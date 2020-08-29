@@ -60,6 +60,8 @@ parser.add_argument('--dims', type=int, default=2048,
                           'By default, uses pool3 features'))
 parser.add_argument('-c', '--gpu', default='', type=str,
                     help='GPU to use (leave blank for CPU only)')
+parse.add_argument('--save_npz', type=str,
+                   help=('Paths to save statistics of first path'))
 parser.add_argument('path', type=str, nargs=2,
                     help=('Paths to the generated images or '
                           'to .npz statistic files'))
@@ -218,11 +220,10 @@ def _compute_statistics_of_path(path, model, batch_size, dims, cuda):
         files = list(path.glob('**/*.jpg')) + list(path.glob('**/*.png'))
         m, s = calculate_activation_statistics(files, model, batch_size,
                                                dims, cuda)
-        # np.savez(path / 'statistics.npz', mu=m, sigma=s)
     return m, s
 
 
-def calculate_fid_given_paths(paths, batch_size, cuda, dims):
+def calculate_fid_given_paths(paths, batch_size, cuda, dims, save_npz):
     """Calculates the FID of two paths"""
     for p in paths:
         if not os.path.exists(p):
@@ -236,6 +237,8 @@ def calculate_fid_given_paths(paths, batch_size, cuda, dims):
 
     m1, s1 = _compute_statistics_of_path(paths[0], model, batch_size,
                                          dims, cuda)
+    if save_npz:
+        np.savez(save_npz, mu=m1, sigma=s1)
     m2, s2 = _compute_statistics_of_path(paths[1], model, batch_size,
                                          dims, cuda)
     fid_value = calculate_frechet_distance(m1, s1, m2, s2)
@@ -250,7 +253,8 @@ def main():
     fid_value = calculate_fid_given_paths(args.path,
                                           args.batch_size,
                                           args.gpu != '',
-                                          args.dims)
+                                          args.dims,
+                                          args.save_npz)
     print('FID: ', fid_value)
 
 
