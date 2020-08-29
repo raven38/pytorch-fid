@@ -60,8 +60,8 @@ parser.add_argument('--dims', type=int, default=2048,
                           'By default, uses pool3 features'))
 parser.add_argument('-c', '--gpu', default='', type=str,
                     help='GPU to use (leave blank for CPU only)')
-parse.add_argument('--save_npz', type=str,
-                   help=('Paths to save statistics of first path'))
+parser.add_argument('--save_npz', type=str,
+                    help=('Paths to save statistics of first path'))
 parser.add_argument('path', type=str, nargs=2,
                     help=('Paths to the generated images or '
                           'to .npz statistic files'))
